@@ -1,0 +1,35 @@
+{
+  "dataset_name": "contract_synth_safe_v1_audit200",
+  "num_docs": 200,
+  "seed": 42,
+
+  "page": { "width": 794, "height": 1123 },
+
+  "distributions": {
+    "page_count": { "1": 0.55, "2": 0.30, "3": 0.15 },
+    "noise_level": { "low": 0.25, "mid": 0.50, "high": 0.25 },
+    "coref_difficulty": { "easy": 0.30, "mid": 0.50, "hard": 0.20 },
+    "ref_difficulty": { "intra_page": 0.70, "cross_page": 0.30 }
+  },
+
+  "entities": {
+    "num_distractors": [1, 4],
+    "use_blacklist_file": true,
+    "blacklist_file": "blacklist.txt"
+  },
+
+  "values": {
+    "money_cny_range": [5000, 800000],
+    "date_start_year_range": [2018, 2025],
+    "duration_days_range": [30, 540]
+  },
+
+  "noise": {
+    "render_scale_factor": 2,
+    "profiles": {
+      "low":  { "blur": [0.0, 0.6], "jpeg_q": [85, 98], "contrast": [0.95, 1.05], "brightness": [0.98, 1.02], "occlusion": [0, 1] },
+      "mid":  { "blur": [0.4, 1.2], "jpeg_q": [65, 90], "contrast": [0.90, 1.10], "brightness": [0.95, 1.05], "occlusion": [0, 2] },
+      "high": { "blur": [0.8, 2.0], "jpeg_q": [40, 75], "contrast": [0.85, 1.15], "brightness": [0.92, 1.08], "occlusion": [1, 4] }
+    }
+  }
+}

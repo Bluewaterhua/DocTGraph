@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <style>
+    body { margin: 0; font-family: "SimSun","Songti SC",serif; background: #fff; }
+    .page { width: 794px; height: 1123px; box-sizing: border-box; padding: 56px 64px 60px 64px; position: relative; }
+    .header { font-size: 12px; text-align: center; margin-bottom: 8px; }
+    .title  { font-size: 24px; text-align: center; margin: 10px 0 16px; font-weight: 700; }
+    .meta   { font-size: 14px; line-height: 1.8; }
+    .section-title { font-size: 16px; font-weight: 700; margin-top: 10px; }
+    .para { font-size: 14px; line-height: 1.9; margin: 6px 0; text-align: justify; }
+    .table-wrap { margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    td, th { border: 1px solid #000; padding: 6px; vertical-align: top; word-break: break-word; }
+    .caption { font-size: 13px; text-align: center; margin-top: 4px; }
+    .footer { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; font-size: 12px; }
+    .stamp { width: 140px; height: 140px; border: 2px solid #999; border-radius: 999px; position: absolute; right: 90px; bottom: 160px; opacity: 0.35; }
+  </style>
+</head>
+
+<body>
+
+{% for pg in pages %}
+<div class="page" data-page="{{pg.page_idx}}">
+
+  <div class="header" data-element-id="hdr_{{pg.page_idx}}">
+    技术服务合同（合成样例） 版本号：V{{version}}  文件编号：{{doc_no}}
+  </div>
+
+  {% if pg.page_type == "cover" %}
+    <div class="title" data-element-id="ttl_{{pg.page_idx}}">技术服务合同</div>
+
+    <div class="meta" data-element-id="meta_{{pg.page_idx}}">
+      合同编号：
+      <span data-value-id="v_contract_id" data-norm-type="contract_id" data-norm-value="{{contract_id_norm}}">
+        {{contract_id_raw}}
+      </span>
+      <br/>
+      项目名称：<span data-element-id="proj_{{pg.page_idx}}">{{project_name}}</span><br/>
+
+      甲方（委托方）：
+      <span data-mention-id="m_partyA_1" data-entity-id="{{entA_id}}">{{partyA_canonical}}</span><br/>
+
+      乙方（受托方）：
+      <span data-mention-id="m_partyB_1" data-entity-id="{{entB_id}}">{{partyB_canonical}}</span><br/>
+
+      签订日期：
+      <span data-value-id="v_sign_date" data-norm-type="datetime" data-norm-value="{{sign_date_norm}}">
+        {{sign_date_raw}}
+      </span>
+    </div>
+
+    <p class="para" data-element-id="p_cover_{{pg.page_idx}}_1">
+      经友好协商，
+      <span data-mention-id="m_partyA_2" data-entity-id="{{entA_id}}">{{partyA_alias_1}}</span>
+      （以下简称“甲方”）与
+      <span data-mention-id="m_partyB_2" data-entity-id="{{entB_id}}">{{partyB_alias_1}}</span>
+      （以下简称“乙方”）就本项目达成如下约定。
+    </p>
+  {% endif %}
+
+  {% for blk in pg.blocks %}
+    {% if blk.kind == "section" %}
+      <div class="section-title" data-element-id="{{blk.element_id}}">{{blk.text}}</div>
+    {% elif blk.kind == "para" %}
+      <p class="para" data-element-id="{{blk.element_id}}">{{blk.html|safe}}</p>
+    {% elif blk.kind == "table" %}
+      <div class="table-wrap" data-element-id="{{blk.wrap_id}}">
+        <table data-element-id="{{blk.element_id}}" data-object-id="{{blk.object_id}}">
+          <thead><tr>
+            {% for h in blk.headers %}<th>{{h}}</th>{% endfor %}
+          </tr></thead>
+          <tbody>
+            {{blk.rows_html|safe}}
+          </tbody>
+        </table>
+        <div class="caption" data-element-id="{{blk.caption_id}}" data-rel="caption_of" data-target-obj="{{blk.object_id}}">
+          {{blk.caption_text}}
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% if pg.include_signature %}
+    <div class="section-title" data-element-id="sec_sign_{{pg.page_idx}}">签署</div>
+    <p class="para" data-element-id="p_sign_{{pg.page_idx}}">
+      甲方（盖章）：<span data-mention-id="m_partyA_3" data-entity-id="{{entA_id}}">{{partyA_alias_2}}</span><br/>
+      乙方（盖章）：<span data-mention-id="m_partyB_3" data-entity-id="{{entB_id}}">{{partyB_alias_2}}</span>
+    </p>
+    <div class="stamp" data-element-id="stamp_{{pg.page_idx}}"></div>
+  {% endif %}
+
+  <div class="footer" data-element-id="ftr_{{pg.page_idx}}">第 {{pg.page_idx}} 页 / 共 {{page_total}} 页</div>
+</div>
+{% endfor %}
+
+</body>
+</html>
