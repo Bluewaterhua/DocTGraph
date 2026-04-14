@@ -1,0 +1,129 @@
+{
+  "coref": {
+    "entities": [
+      {
+        "entity_id": "entA_000001",
+        "canonical": "宁岫澈拓系统集成股份有限公司",
+        "mentions": [
+          "m_partyA_1",
+          "m_partyA_2"
+        ]
+      },
+      {
+        "entity_id": "entB_000001",
+        "canonical": "北岭晟昱通信技术股份有限公司",
+        "mentions": [
+          "m_partyB_1",
+          "m_partyB_2"
+        ]
+      }
+    ],
+    "difficulty": "mid"
+  },
+  "relations": [
+    {
+      "h": "p_pay_1",
+      "r": "refer_to",
+      "t": "obj_tbl_pay_1",
+      "trigger": "r_pay_tbl_1"
+    },
+    {
+      "h": "cap_tbl_pay_1",
+      "r": "caption_of",
+      "t": "obj_tbl_pay_1"
+    }
+  ],
+  "normalization": [
+    {
+      "value_id": "v_contract_id",
+      "type": "contract_id",
+      "raw": "SYN-CT-78-2273-000001",
+      "norm": "SYN-CT-78-2273-000001"
+    },
+    {
+      "value_id": "v_sign_date",
+      "type": "datetime",
+      "raw": "2020-01-07",
+      "norm": "2020-01-07"
+    },
+    {
+      "value_id": "v_total_money",
+      "type": "money",
+      "raw": "744,434.00元",
+      "norm": "CNY:744434.00"
+    },
+    {
+      "value_id": "v_start_date",
+      "type": "datetime",
+      "raw": "2020年1月7日",
+      "norm": "2020-01-07"
+    },
+    {
+      "value_id": "v_end_date",
+      "type": "datetime",
+      "raw": "2020/10/09",
+      "norm": "2020-10-09"
+    },
+    {
+      "value_id": "v_phone",
+      "type": "phone",
+      "raw": "17446274078",
+      "norm": "17446274078"
+    },
+    {
+      "value_id": "v_tax_no",
+      "type": "tax_no",
+      "raw": "GN7R29 PT62LC 05R8P7",
+      "norm": "GN7R29PT62LC05R8P7"
+    },
+    {
+      "value_id": "v_bank_acct",
+      "type": "bank_account",
+      "raw": "9789 1914 5648 7256",
+      "norm": "9789191456487256"
+    },
+    {
+      "value_id": "v_email",
+      "type": "email",
+      "raw": "澈拓8011@example.com",
+      "norm": "澈拓8011@example.com"
+    },
+    {
+      "value_id": "v_tbl1_pay_money_1",
+      "type": "money",
+      "raw": "人民币223330元整",
+      "norm": "CNY:223330.00"
+    },
+    {
+      "value_id": "v_tbl1_pay_date_1",
+      "type": "datetime",
+      "raw": "2020.09.06",
+      "norm": "2020-09-06"
+    },
+    {
+      "value_id": "v_tbl1_pay_money_2",
+      "type": "money",
+      "raw": "297774元",
+      "norm": "CNY:297774.00"
+    },
+    {
+      "value_id": "v_tbl1_pay_date_2",
+      "type": "datetime",
+      "raw": "2020-09-21",
+      "norm": "2020-09-21"
+    },
+    {
+      "value_id": "v_tbl1_pay_money_3",
+      "type": "money",
+      "raw": "223330元",
+      "norm": "CNY:223330.00"
+    },
+    {
+      "value_id": "v_tbl1_pay_date_3",
+      "type": "datetime",
+      "raw": "2020.10.06",
+      "norm": "2020-10-06"
+    }
+  ],
+  "ref_difficulty": "intra_page"
+}

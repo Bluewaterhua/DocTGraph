@@ -1,0 +1,10 @@
+{
+  "doc_id": "doc_000001",
+  "seed": 42000127,
+  "page_count": 1,
+  "noise_level": "mid",
+  "coref_difficulty": "mid",
+  "ref_difficulty": "intra_page",
+  "layout_profile": "balanced",
+  "fictional_entities": true
+}
