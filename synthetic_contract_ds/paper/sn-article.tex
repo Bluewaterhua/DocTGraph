@@ -1,0 +1,489 @@
+%Version 3.1 December 2024
+% See section 11 of the User Manual for version history
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                                 %%
+%% Please do not use \input{...} to include other tex files.       %%
+%% Submit your LaTeX manuscript as one .tex document.              %%
+%%                                                                 %%
+%% All additional figures and files should be attached             %%
+%% separately and not embedded in the \TeX\ document itself.       %%
+%%                                                                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%\documentclass[referee,sn-basic]{sn-jnl}% referee option is meant for double line spacing
+
+%%=======================================================%%
+%% to print line numbers in the margin use lineno option %%
+%%=======================================================%%
+
+%%\documentclass[lineno,pdflatex,sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
+
+%%=========================================================================================%%
+%% the documentclass is set to pdflatex as default. You can delete it if not appropriate.  %%
+%%=========================================================================================%%
+
+%%\documentclass[sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
+
+%%Note: the following reference styles support Namedate and Numbered referencing. By default the style follows the most common style. To switch between the options you can add or remove �Numbered� in the optional parenthesis. 
+%%The option is available for: sn-basic.bst, sn-chicago.bst%  
+ 
+%%\documentclass[pdflatex,sn-nature]{sn-jnl}% Style for submissions to Nature Portfolio journals
+%%\documentclass[pdflatex,sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
+\documentclass[pdflatex,twocolumn,iicol,sn-vancouver-num]{sn-jnl}% Springer Nature iicol submission format with numbered citations
+%%\documentclass[pdflatex,sn-aps]{sn-jnl}% American Physical Society (APS) Reference Style
+%%\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}% Vancouver Numbered Reference Style
+%%\documentclass[pdflatex,sn-vancouver-ay]{sn-jnl}% Vancouver Author Year Reference Style
+%%\documentclass[pdflatex,sn-apa]{sn-jnl}% APA Reference Style
+%%\documentclass[pdflatex,sn-chicago]{sn-jnl}% Chicago-based Humanities Reference Style
+
+%%%% Standard Packages
+%%<additional latex packages if required can be included here>
+
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{amsthm}%
+\usepackage{mathrsfs}%
+\usepackage[title]{appendix}%
+\usepackage{xcolor}%
+\usepackage{textcomp}%
+\usepackage{manyfoot}%
+\usepackage{booktabs}%
+\usepackage{algorithm}%
+\usepackage{algorithmicx}%
+\usepackage{algpseudocode}%
+\usepackage{listings}%
+\usepackage[section]{placeins}%
+%%%%
+
+%%%%%=============================================================================%%%%
+%%%%  Remarks: This template is provided to aid authors with the preparation
+%%%%  of original research articles intended for submission to journals published 
+%%%%  by Springer Nature. The guidance has been prepared in partnership with 
+%%%%  production teams to conform to Springer Nature technical requirements. 
+%%%%  Editorial and presentation requirements differ among journal portfolios and 
+%%%%  research disciplines. You may find sections in this template are irrelevant 
+%%%%  to your work and are empowered to omit any such section if allowed by the 
+%%%%  journal you intend to submit to. The submission guidelines and policies 
+%%%%  of the journal take precedence. A detailed User Manual is available in the 
+%%%%  template package for technical guidance.
+%%%%%=============================================================================%%%%
+
+%% as per the requirement new theorem styles can be included as shown below
+\theoremstyle{thmstyleone}%
+\newtheorem{theorem}{Theorem}%  meant for continuous numbers
+%%\newtheorem{theorem}{Theorem}[section]% meant for sectionwise numbers
+%% optional argument [theorem] produces theorem numbering sequence instead of independent numbers for Proposition
+\newtheorem{proposition}[theorem]{Proposition}% 
+%%\newtheorem{proposition}{Proposition}% to get separate numbers for theorem and proposition etc.
+
+\theoremstyle{thmstyletwo}%
+\newtheorem{example}{Example}%
+\newtheorem{remark}{Remark}%
+
+\theoremstyle{thmstylethree}%
+\newtheorem{definition}{Definition}%
+
+\raggedbottom
+%%\unnumbered% uncomment this for unnumbered level heads
+
+\begin{document}
+
+\title[DocTGraph]{DocTGraph: Dual-Stream Document Graph Modeling for Knowledge Graph Construction from Complex Documents}
+%%=============================================================%%
+%% GivenName	-> \fnm{Joergen W.}
+%% Particle	-> \spfx{van der} -> surname prefix
+%% FamilyName	-> \sur{Ploeg}
+%% Suffix	-> \sfx{IV}
+%% \author*[1,2]{\fnm{Joergen W.} \spfx{van der} \sur{Ploeg} 
+%%  \sfx{IV}}\email{iauthor@gmail.com}
+%%=============================================================%%
+
+\author*[1,2]{\fnm{First} \sur{Author}}\email{iauthor@gmail.com}
+
+\author[2,3]{\fnm{Second} \sur{Author}}\email{iiauthor@gmail.com}
+\equalcont{These authors contributed equally to this work.}
+
+\author[1,2]{\fnm{Third} \sur{Author}}\email{iiiauthor@gmail.com}
+\equalcont{These authors contributed equally to this work.}
+
+\affil*[1]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{100190}, \state{State}, \country{Country}}}
+
+\affil[2]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{10587}, \state{State}, \country{Country}}}
+
+
+%%==================================%%
+%% Sample for unstructured abstract %%
+%%==================================%%
+
+\abstract{
+Knowledge graph construction from complex documents requires coordinated modeling of entity identity, structural relations, and normalized attribute values. Existing document understanding methods often address these problems as isolated subtasks and make limited use of the complementary signals contained in document structure and multimodal page content. This paper proposes DocTGraph, a unified document graph framework for knowledge-oriented document understanding from visually rich and structurally organized documents. The framework uses two parallel input streams: an explicit structural stream derived from HTML/DOM and a multimodal stream encoded by LayoutLMv3. These two streams are fused into a unified typed document graph with block, mention, reference, value, and object nodes, and are used to support three coordinated stages: entity consolidation, semantic linking, and attribute canonicalization. To evaluate this formulation, we construct a synthetic contract benchmark with aligned supervision for the three stages. Experimental results show that the proposed framework effectively supports joint modeling of entity alignment, document-grounded relation construction, and value normalization. In particular, removing the HTML/DOM branch causes substantial performance degradation across tasks, confirming the importance of explicit structural input. Furthermore, task-adaptive graph reasoning improves entity consolidation and semantic linking over the shared graph baseline while maintaining comparable value recovery performance. These results demonstrate that combining explicit structure and multimodal semantics in a unified document graph provides an effective basis for knowledge graph construction from complex documents.
+}
+
+
+%%================================%%
+%% Sample for structured abstract %%
+%%================================%%
+
+% \abstract{\textbf{Purpose:} The abstract serves both as a general introduction to the topic and as a brief, non-technical summary of the main results and their implications. The abstract must not include subheadings (unless expressly permitted in the journal's Instructions to Authors), equations or citations. As a guide the abstract should not exceed 200 words. Most journals do not set a hard limit however authors are advised to check the author instructions for the journal they are submitting to.
+% 
+% \textbf{Methods:} The abstract serves both as a general introduction to the topic and as a brief, non-technical summary of the main results and their implications. The abstract must not include subheadings (unless expressly permitted in the journal's Instructions to Authors), equations or citations. As a guide the abstract should not exceed 200 words. Most journals do not set a hard limit however authors are advised to check the author instructions for the journal they are submitting to.
+% 
+% \textbf{Results:} The abstract serves both as a general introduction to the topic and as a brief, non-technical summary of the main results and their implications. The abstract must not include subheadings (unless expressly permitted in the journal's Instructions to Authors), equations or citations. As a guide the abstract should not exceed 200 words. Most journals do not set a hard limit however authors are advised to check the author instructions for the journal they are submitting to.
+% 
+% \textbf{Conclusion:} The abstract serves both as a general introduction to the topic and as a brief, non-technical summary of the main results and their implications. The abstract must not include subheadings (unless expressly permitted in the journal's Instructions to Authors), equations or citations. As a guide the abstract should not exceed 200 words. Most journals do not set a hard limit however authors are advised to check the author instructions for the journal they are submitting to.}
+
+\keywords{document graph modeling, knowledge graph construction, document understanding, information extraction}
+
+%%\pacs[JEL Classification]{D8, H51}
+
+%%\pacs[MSC Classification]{35A01, 65L10, 65L12, 65L20, 65L70}
+
+\maketitle
+
+\section{Introduction}
+
+In many real-world domains, such as legal, industrial, financial, and enterprise settings, documents are not merely presentation media but primary carriers of operational facts, business records, and domain knowledge. As a result, document acquisition is often not an end in itself; rather, it serves as an upstream process for transforming document-borne information into structured knowledge\cite{salmanDocKGUnstructuredDocuments2024,sunDocs2KGUnifiedKnowledge2024}
+ that can be integrated, queried, and reused across systems.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig1_intro.jpg}
+\caption{Illustration of the role of our framework between raw document content and downstream knowledge graph construction. Instead of extracting isolated spans only, the framework converts entity mentions, document-grounded references, and value expressions into graph-computable semantic units for entity alignment, relation construction, and attribute normalization.}
+\label{fig:example_wide}
+\end{figure*}
+
+Real-world documents further exhibit heterogeneous and layout-dependent semantic structures, where meaningful information is distributed across paragraphs, tables, figures, form fields, and other visually organized components. Prior work on visually-rich document understanding (VrDU) defines document understanding as the extraction of implicit and explicit knowledge from scanned or digital-born documents, rather than a purely perceptual recognition problem\cite{sassiouiVisuallyrichDocumentUnderstanding2023a,dingDeepLearningBased2026}. This perspective suggests that document semantics are inherently distributed across textual, visual, geometric, and task-dependent signals.
+
+
+Existing VrDU pipelines are typically organized around preprocessing, feature extraction, document modeling, and task-specific adaptation, and have achieved strong progress on tasks such as key information extraction, visual question answering, and document classification\cite{xuLayoutLMPretrainingText2020,xuLayoutLMv2MultimodalPretraining2021,huangLayoutLMv3PretrainingDocument2022,appalarajuDocFormerv2LocalFeatures2024,wangDocLLMLayoutawareGenerative2024}. Representative studies also include task-oriented document models such as BROS, which further emphasize the role of text-layout interaction in key information extraction~\cite{hongBROSPretrainedLanguage2022}. However, most such pipelines still produce relatively shallow outputs, such as text fragments, layout regions, or local field values. While these outputs are often sufficient for page-level or task-specific document understanding, they remain limited for broader knowledge organization, especially when information must be linked across entities, documents, and heterogeneous sources.
+
+In practice, turning document-derived observations into reusable knowledge usually requires additional semantic processing, including entity and relation extraction, entity linking, inconsistency handling, and ontology-aware integration~\cite{salmanDocKGUnstructuredDocuments2024,sunDocs2KGUnifiedKnowledge2024,galianoT2KGTransformingMultimodal2023a}. From a broader perspective, this is consistent with the nature of knowledge graph construction itself, which is not a one-step transformation from raw data to graph storage, but an inherently multi-stage process involving knowledge acquisition, refinement, and evolution over heterogeneous external sources~\cite{zhongComprehensiveSurveyAutomatic2023,hoganKnowledgeGraphs2022a,paulheimAutomaticKnowledgeGraph}.
+Therefore, converting raw document data into KG-ready knowledge should be understood as a semantic structuring problem rather than a mere storage problem.
+
+
+Motivated by this gap, we argue that semantic structuring should be pushed upstream into the document acquisition stage. Rather than treating document acquisition as a purely perceptual process that outputs only recognized text or detected regions, we aim to capture intermediate results that are already closer to the input form required by downstream knowledge graph construction. In this sense, our work plays the role of a semantic interface between document understanding and knowledge graph construction, as illustrated in Fig.~\ref{fig:example_wide}. Its goal is not merely to extract isolated spans from documents, but to convert complex document content into graph-computable semantic units that can directly support downstream entity alignment, relation construction, and attribute normalization.
+
+This requirement is particularly important for structurally organized documents such as contracts, where useful knowledge is rarely expressed as a single flat sequence. Instead, it is distributed across entity mentions, references to tables or figures, local value expressions, and document objects embedded in layout structure. If these units are not captured and organized during acquisition, downstream graph construction must still recover identity, anchoring, and normalization information from fragmented observations, which increases semantic loss and integration cost. Therefore, document understanding for knowledge graph construction is fundamentally different from single-task sequence labeling or plain text extraction: its objective is to produce semantically organized outputs that are already closer to graph-ready knowledge.
+
+Based on this view, we study a unified document graph framework for three coordinated stages of knowledge graph construction: entity consolidation, semantic linking, and attribute canonicalization. The core idea is to model document semantics with two parallel input streams. The first stream is derived from HTML/DOM and provides explicit structural information, including hierarchy, object organization, and reference-related structural arrangement. The second stream is derived from LayoutLMv3 and provides multimodal node representations by jointly encoding textual content, page layout, and visual appearance. Instead of using either stream alone, we fuse them within a unified typed document graph whose nodes correspond to blocks, mentions, references, values, and structural objects. Graph reasoning is then performed over this shared representation so that explicit structure and multimodal semantics can jointly support knowledge-oriented document understanding.
+
+Within this framework, task-adaptive graph reasoning can be further introduced as a flexible extension for stage-specific inference under the same global graph. Importantly, task adaptation is not treated here as the sole source of performance gain. Rather, the main purpose of this paper is to establish a coherent document-to-graph pipeline in which structured document input and multimodal semantic representation are fused into a unified modeling space. Under this formulation, the three target stages are not isolated downstream classifiers, but coordinated graph construction stages over the same document representation.
+
+To support controlled evaluation, we further construct a synthetic contract benchmark based on real contract data. The benchmark simulates realistic contract content and document organization, while restoring the underlying structure in HTML form to preserve aligned supervision for the three stages. The reconstructed documents are then rendered into visually realistic pages, enabling evaluation of the framework in a document image setting. This design enables us to evaluate not only end-to-end task performance, but also the contribution of different input streams within the same pipeline.
+
+Our experimental results support a clear conclusion: the HTML/DOM branch is indispensable in the proposed framework. When the explicit structural branch is removed, performance degrades markedly across entity consolidation, semantic linking, and attribute canonicalization. This finding indicates that, for knowledge-oriented document understanding, explicit document structure should not be treated as optional auxiliary metadata. Instead, it should be modeled together with multimodal semantic representation as a first-class input to document graph construction.
+
+The main contributions of this paper are summarized as follows.
+\begin{itemize}
+    \item We formulate knowledge-oriented document understanding as a unified document graph problem that directly supports three coordinated stages of knowledge graph construction: entity consolidation, semantic linking, and attribute canonicalization.
+    \item We propose a dual-stream framework that treats HTML/DOM structure and LayoutLMv3-based multimodal representations as parallel inputs and fuses them in a unified typed document graph.
+    \item We construct a synthetic contract benchmark with aligned supervision for entity identity, document-grounded relations, and normalized attributes, enabling controlled evaluation of document-to-graph semantic structuring.
+    \item We show through ablation that the HTML/DOM branch is indispensable in the current framework, highlighting the importance of explicit structural input for knowledge-oriented document graph modeling.
+\end{itemize}
+
+The remainder of this paper is organized as follows. Section~2 reviews related work on visually-rich document understanding, graph-based document modeling, and document-oriented knowledge construction. Section~3 presents the proposed framework. Section~4 introduces the benchmark construction process and task definitions. Section~5 reports the experimental settings and results. Section~6 concludes the paper.
+
+
+
+\section{Related Work}
+\subsection{Visually-Rich Document Understanding}
+Existing research in this area has mainly focused on multimodal representation learning and task-specific adaptation. Representative studies include multimodal pre-trained document models such as LayoutLM, LayoutLMv2, and LayoutLMv3~\cite{xuLayoutLMPretrainingText2020,xuLayoutLMv2MultimodalPretraining2021,huangLayoutLMv3PretrainingDocument2022}. Other recent efforts have explored alternative modeling paradigms, including BROS for text-layout-focused key information extraction, LiLT for language-independent structured document understanding, MarkupLM for markup-aware document modeling, StrucTexT for structured text understanding, Donut for OCR-free document understanding, DocFormerv2 for local-feature-enhanced multimodal modeling, and DocLLM for layout-aware generative document understanding~\cite{hongBROSPretrainedLanguage2022,wangLiLTSimpleEffective2022,liMarkupLMPretrainingText2022,liStrucTexTStructuredText2021,kimOCRfreeDocumentUnderstanding2022,appalarajuDocFormerv2LocalFeatures2024,wangDocLLMLayoutawareGenerative2024}. More recent efforts have further explored unified document modeling and instruction-based adaptation, such as OmniParser~\cite{wanOmniParserUnifiedFramework2024b} and LayoutLLM~\cite{luoLayoutLLMLayoutInstruction2024a}. These studies establish that document understanding cannot be reduced to text recognition alone, but requires coordinated modeling of multiple information sources within the document. Despite these advances, most existing VrDU methods are still organized around document-specific downstream tasks, and their outputs are typically optimized for recognition, parsing, or task-level prediction rather than for direct knowledge organization. Even when the learned representations are structurally informed, the final outputs often remain shallow observations such as labeled spans, parsed regions, or task-specific sequences. Widely used benchmarks such as FUNSD, CORD, and SROIE have also driven progress in form understanding, receipt parsing, and key information extraction~\cite{jaumeFUNSDDatasetForm2019,parkCORDConsolidatedReceipt,huangICDAR2019CompetitionScanned2019}. As a result, existing VrDU methods do not explicitly address how document content should be transformed into graph-computable semantic units that are directly suitable for downstream knowledge graph construction.
+
+
+
+
+\subsection{Graph-Based Document Modeling}
+Graph-based modeling provides a natural way to represent structured dependencies in documents. More generally, graph neural networks, graph attention, and neighborhood aggregation provide effective mechanisms for information propagation over structured data~\cite{kipfSemiSupervisedClassificationGraph2017,velickovicGraphAttentionNetworks2018,hamiltonInductiveRepresentationLearning2018}.
+Representative work along this line includes Doc2Graph, which formulates document understanding as a graph-based problem and demonstrates that graph neural networks can serve as a general framework across multiple document tasks~\cite{gemelliDoc2GraphTaskAgnostic2023}. In addition to task-agnostic graph modeling, graph-based methods have also been explored for document key information extraction and multimodal relation modeling~\cite{yuPICKProcessingKey2020,zhangExploringMultimodalRelation}. However, existing graph-based document methods are still primarily designed for task-specific document analysis objectives such as key information extraction, entity linking, layout analysis, or table understanding. In these settings, the document graph mainly serves as a reasoning structure for improving task performance within the document domain itself. By contrast, our focus is not only to use graphs for document prediction, but to organize document semantics into an intermediate representation that is closer to downstream knowledge graph construction. This difference shifts the role of document graphs from a task-level reasoning tool to a document-to-knowledge structuring interface.
+
+\subsection{Document Understanding for Knowledge-Oriented Structuring}
+
+Existing document-to-knowledge frameworks generally involve intermediate processes such as entity and relation extraction, entity linking, inconsistency handling, and knowledge integration~\cite{salmanDocKGUnstructuredDocuments2024,sunDocs2KGUnifiedKnowledge2024,galianoT2KGTransformingMultimodal2023a}. This means that the outputs of document understanding systems are often only an initial stage in a longer semantic pipeline, rather than the final form required by graph-based knowledge organization. This view is consistent with the broader nature of knowledge graph construction, which is inherently a multi-stage process over heterogeneous external sources and involves creation, enrichment, quality assessment, and refinement rather than a simple transformation from raw data to graph storage~\cite{zhongComprehensiveSurveyAutomatic2023,hoganKnowledgeGraphs2022a,paulheimAutomaticKnowledgeGraph}. Consequently, when raw inputs come from complex documents, shallow acquisition outputs inevitably leave substantial semantic recovery, alignment, and normalization burdens to downstream graph construction modules.
+
+Taken together, existing studies suggest three complementary facts. First, document understanding requires multimodal representation because document semantics are jointly conveyed by text, layout, and visual content. Second, graph-based modeling provides a natural mechanism for expressing structured dependencies among document elements. Third, downstream knowledge graph construction requires semantically organized outputs rather than shallow document observations. These observations motivate our view that knowledge-oriented document understanding should combine explicit structural information and multimodal semantic representation within a unified document graph.
+
+\section{Methodology}\label{sec3}
+
+\subsection{Problem Formulation}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{repair_fig2_method.png}
+\caption{Overall framework of DocTGraph. The proposed method takes a rendered document page and aligned HTML/DOM structure as dual-stream inputs, constructs a unified typed document graph, and performs graph fusion and task-adaptive reasoning to support entity consolidation, semantic linking, and attribute canonicalization.}
+\label{fig2_method}
+\end{figure*}
+As illustrated in Fig.~\ref{fig2_method}, DocTGraph first derives explicit structural and multimodal representations from dual-stream inputs, then organizes them into a unified typed document graph, and finally performs task-specific graph reasoning for entity consolidation, semantic linking, and attribute canonicalization.
+
+Given a complex document \(D\), our goal is to construct semantically structured outputs that are directly useful for downstream knowledge graph construction. We represent \(D\) as a structured multimodal object containing textual content, rendered page appearance, and document-level organization. Formally, the input document can be written as
+\begin{equation}
+D = (S, I)
+\label{eq:document_input}
+\end{equation}
+where \(S\) denotes the explicit structural description available at acquisition time, and \(I\) denotes the rendered document page. The document is further mapped into a typed document graph
+\begin{equation}
+G = (V, E)
+\label{eq:graph}
+\end{equation}
+where \(V\) is the set of document nodes and \(E\) is the set of structural or semantic edges. To support different stages of knowledge graph construction, we define five types of nodes in \(V\), namely block nodes, mention nodes, reference nodes, value nodes, and object nodes.
+\begin{equation}
+    V = V_b \cup V_m \cup V_r \cup V_v \cup V_o
+\end{equation}
+where \(V_b\), \(V_m\), \(V_r\), \(V_v\), and \(V_o\) denote the sets of block, mention, reference, value, and object nodes, respectively. The edge set \(E\) encodes both document organization and candidate semantic interactions. We write
+\begin{equation}
+E = E_{\mathrm{str}} \cup E_{\mathrm{ctx}} \cup E_{\mathrm{cand}}
+\end{equation}
+          
+where \(E_{\mathrm{str}}\) denotes explicit structural edges derived from document organization, \(E_{\mathrm{ctx}}\) denotes contextual edges capturing local neighborhood dependencies, and \(E_{\mathrm{cand}}\) denotes candidate edges for downstream semantic prediction. Under this formulation, the document graph \(G\) serves as a shared semantic space for three coordinated stages, namely entity consolidation, semantic linking, and attribute canonicalization.
+
+Formally, the target outputs of the three stages are denoted by
+\begin{equation}
+Y = (Y_{\mathrm{ent}}, Y_{\mathrm{link}}, Y_{\mathrm{norm}})
+\end{equation}
+where \(Y_{\mathrm{ent}}\) represents entity consolidation over mention nodes, \(Y_{\mathrm{link}}\) represents semantic linking over candidate node pairs, and \(Y_{\mathrm{norm}}\) represents normalized attribute prediction over value nodes. The overall objective of the proposed framework is therefore to learn a mapping from the dual-stream document input \(D = (S, I)\) to the unified graph \(G = (V, E)\), and further from \(G\) to the structured outputs \(Y\).
+
+\subsection{Dual-Stream Input Construction}
+
+The proposed framework uses two complementary input streams, namely an explicit structural stream and a multimodal representation stream. The structural stream corresponds to \(S\) in Eq.~\eqref{eq:document_input}, while the multimodal stream is derived from the rendered document page \(I\). The two streams capture different but complementary aspects of the same document and are later fused within a unified document graph.
+
+In our setting, the structural stream is derived from document-native HTML/DOM information that is available during document generation and rendering. We convert its aligned structural signals into graph-oriented structural descriptors, including hierarchical organization, object membership, and reference-related arrangement. These signals provide an explicit description of how document elements are organized at the document level.
+
+It is important to note that access to HTML/DOM does not trivialize the target tasks. The available structural signals mainly describe document organization and anchoring relations, but they do not directly solve entity consolidation, semantic linking, or attribute canonicalization. These stages still require semantic interpretation over document content and graph-level interactions among heterogeneous nodes.
+
+The multimodal stream is built from the rendered document page and encoded with LayoutLMv3~\cite{huangLayoutLMv3PretrainingDocument2022}. This stream provides contextualized node representations by jointly modeling textual content, page layout, and visual appearance. Compared with the structural stream, which emphasizes explicit organization, the multimodal stream emphasizes semantic content and visually grounded context. The two streams therefore play complementary roles in the proposed framework.
+
+
+
+\subsection{Unified Document Graph Construction}
+
+Given the dual-stream input, we construct a unified typed document graph by mapping document elements into typed nodes and by instantiating edges according to structural organization, contextual proximity, and task-oriented candidate interactions. The resulting graph serves as the common semantic space in which explicit document structure and multimodal content are jointly organized.
+
+Each document element is first converted into one node in the graph according to its semantic role. Block nodes are created from textual or layout blocks that carry contextual content. Mention nodes are created for spans corresponding to entity mentions. Reference nodes are created for textual references that point to structural objects. Value nodes are created for local attribute expressions such as dates, amounts, or account-related strings. Object nodes are created for structurally identifiable document objects, such as tables and figures. In this way, heterogeneous document elements are normalized into a shared typed node space.
+
+Formally, for each node \(v \in V\), we associate a type function
+\begin{equation}
+\tau(v) \in \{\mathrm{block}, \mathrm{mention}, \mathrm{ref}, \mathrm{value}, \mathrm{object}\}
+\end{equation}
+which specifies its semantic role in the document graph. This type assignment makes it possible to define structure-preserving edges and task-specific prediction spaces on top of the same graph.
+
+The structural edge subset \(E_{\mathrm{str}}\) is instantiated from document organization. It includes relations induced by hierarchy, containment, object attachment, and other document-native structural arrangements available in the structural stream. The contextual edge subset \(E_{\mathrm{ctx}}\) connects nodes that are locally adjacent or semantically nearby in the document, so that graph propagation can capture neighborhood-level context beyond explicit hierarchy. The candidate edge subset \(E_{\mathrm{cand}}\) is constructed from node pairs that may participate in downstream semantic prediction, such as mention--mention pairs for entity consolidation or reference--object pairs for semantic linking.
+
+Accordingly, each edge \(e = (u, v) \in E\) is associated with an edge category
+\begin{equation}
+\phi(e) \in \{\mathrm{str}, \mathrm{ctx}, \mathrm{cand}\}
+\end{equation}
+which indicates whether the edge plays a structural, contextual, or candidate role in the graph. This formulation allows the graph to distinguish document-native organization from auxiliary context propagation and downstream prediction candidates.
+
+The resulting graph construction process does not assume that structure alone determines the final outputs. Instead, it provides a common scaffold on which different semantic units can be aligned, connected, and later encoded with multimodal representations. Under this view, the document graph is not merely a data structure for storage, but an intermediate semantic interface between document acquisition and graph-oriented knowledge construction.
+
+\subsection{Multimodal Node Encoding and Graph Fusion}
+
+After graph construction, each node is associated with a multimodal representation derived from the rendered document page. Specifically, we use LayoutLMv3 to encode textual content together with layout and visual information, and then map the resulting token-level or region-level representations to graph nodes according to their document alignment. In this way, the document graph is equipped not only with explicit structural connectivity, but also with contextualized multimodal semantics at the node level.
+
+Formally, for each node \(v \in V\), we compute a node representation
+\begin{equation}
+\mathbf{h}_v = f_{\mathrm{enc}}(v, I)
+\end{equation}
+where \(f_{\mathrm{enc}}\) denotes the LayoutLMv3-based multimodal encoder and \(I\) denotes the rendered document page. The resulting vector \(\mathbf{h}_v \in \mathbb{R}^d\) captures the semantic content, spatial position, and visual appearance associated with node \(v\).
+
+The structural stream and the multimodal stream are fused on the graph. More concretely, the structural stream determines the typed node set and edge organization of the document graph, while the multimodal stream supplies the initial node features used for graph reasoning. This design allows explicit document organization and contextualized semantic representation to interact within the same graph space.
+
+Let \(H^{(0)} = \{\mathbf{h}_v \mid v \in V\}\) denote the set of initial node representations. Graph fusion is then performed by propagating information over the unified document graph,
+\begin{equation}
+H^{(l+1)} = f_{\mathrm{gnn}}(H^{(l)}, G)
+\end{equation}
+where \(f_{\mathrm{gnn}}\) denotes one layer of graph-based message passing and \(H^{(l)}\) denotes the node representations at layer \(l\). Through this process, each node representation is updated not only by its own multimodal content, but also by structural and contextual signals propagated from neighboring nodes.
+
+Under this formulation, the graph does not simply aggregate visual features on top of a fixed structure. Instead, it serves as the fusion space in which explicit structural information and multimodal semantics are jointly organized for downstream semantic prediction.
+
+\subsection{Task-Specific Prediction and Optimization}
+
+After graph fusion, the final node representations are used for three coordinated prediction stages, namely entity consolidation, semantic linking, and attribute canonicalization. All three stages are defined on top of the same fused document graph, so that the framework preserves a unified semantic space while supporting task-specific outputs.
+
+For entity consolidation, the model evaluates candidate mention pairs and predicts whether they refer to the same underlying entity. Let \(u, v \in V_m\) be two mention nodes. Their consolidation score is computed as
+\begin{equation}
+p_{\mathrm{ent}}(u, v) = g_{\mathrm{ent}}(\mathbf{h}^{(L)}_u \Vert \mathbf{h}^{(L)}_v)
+\end{equation}
+where \(g_{\mathrm{ent}}\) denotes the entity consolidation head and \(\Vert\) denotes vector concatenation.
+
+For semantic linking, the model evaluates candidate node pairs associated with document-grounded relations, such as reference--object pairs. Let \(u, v\) be a candidate pair connected by an edge in \(E_{\mathrm{cand}}\). Their linking score is computed as
+\begin{equation}
+p_{\mathrm{link}}(u, v) = g_{\mathrm{link}}(\mathbf{h}^{(L)}_u \Vert \mathbf{h}^{(L)}_v)
+\end{equation}
+where \(g_{\mathrm{link}}\) denotes the semantic linking head.
+
+For attribute canonicalization, the model predicts the normalization type associated with each value node. Let \(v \in V_v\) be a value node. Its canonicalization output is computed as
+\begin{equation}
+p_{\mathrm{norm}}(v) = g_{\mathrm{norm}}(\mathbf{h}^{(L)}_v)
+\end{equation}
+where \(g_{\mathrm{norm}}\) denotes the attribute canonicalization head. In the current implementation, exact canonical values are recovered by type-specific normalization rules and are evaluated separately in the experiments.
+
+For a stage \(t \in \{\mathrm{ent}, \mathrm{link}, \mathrm{norm}\}\), the corresponding objective is written as
+\begin{equation}
+\mathcal{L}_t = \ell_t(\hat{Y}_t, Y_t)
+\end{equation}
+where \(\hat{Y}_t\) and \(Y_t\) denote the predicted and gold outputs of stage \(t\), respectively. In practice, \(\ell_{\mathrm{ent}}\) is instantiated as binary cross-entropy over candidate mention pairs, while \(\ell_{\mathrm{link}}\) and \(\ell_{\mathrm{norm}}\) are instantiated as cross-entropy losses over relation labels and normalization types.
+
+In the general multi-stage setting, the framework can be optimized jointly as
+\begin{equation}
+\mathcal{L}_{\mathrm{joint}} = \lambda_{\mathrm{ent}} \mathcal{L}_{\mathrm{ent}} + \lambda_{\mathrm{link}} \mathcal{L}_{\mathrm{link}} + \lambda_{\mathrm{norm}} \mathcal{L}_{\mathrm{norm}}
+\end{equation}
+where \(\lambda_{\mathrm{ent}}\), \(\lambda_{\mathrm{link}}\), and \(\lambda_{\mathrm{norm}}\) are task weights. To isolate the behavior of task-adaptive routing for a specific stage, we also consider stage-specific optimization
+\begin{equation}
+\mathcal{L}_{\mathrm{single}}^{(t)} = \mathcal{L}_t
+\end{equation}
+which keeps only the objective of the target stage active.
+
+This distinction is important because task-adaptive routing is designed to bias message passing toward the needs of a target stage, while the unified document graph still provides the shared semantic space for all downstream predictions. Within this formulation, task-adaptive graph reasoning remains a compatible extension on top of the unified document graph, rather than the sole source of modeling effectiveness.
+
+Overall, the proposed method converts dual-stream document input into a unified document graph and supports graph-oriented semantic prediction under both shared and task-adaptive reasoning settings.
+
+\section{Synthetic Contract Benchmark}
+
+\subsection{Benchmark Construction}
+
+\begin{table*}[!t]
+\centering
+\caption{Statistics of the synthetic contract benchmark. Each sample is a rendered contract page with dense structural and semantic annotations, including layout blocks, entity mentions, canonical entities, and normalized value expressions.}
+\label{tab:dataset_stats}
+\begin{tabular}{lrrrrr}
+\toprule
+Split & \#Pages & \#Layout Blocks & \#Total Mentions & \#Unique Entities & \#Normalized Values \\
+\midrule
+Train & 9,000  & 197,804 & 45,812 & 26,494 & 125,954 \\
+Val   & 1,000  & 21,895  & 5,097  & 2,949  & 13,982  \\
+Total & 10,000 & 219,699 & 50,909 & 29,443 & 139,936 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+To support controlled evaluation of knowledge-oriented document graph modeling, we construct a synthetic contract benchmark based on HTML-native contract templates. The benchmark is designed to preserve explicit document structure while providing a visually realistic document setting for multimodal document understanding. This design is particularly suitable for our problem because the target framework explicitly studies how document-native structural information and page-level multimodal semantics can be fused for downstream knowledge graph construction.
+
+Each document in the benchmark is first generated from a contract template written in HTML. Template instantiation is performed by filling predefined structural slots with synthesized content such as party names, contract identifiers, dates, amounts, account information, and reference expressions. During this process, the source document retains hierarchical organization and structural object information, including blocks, tables, captions, and other structurally meaningful elements. The instantiated HTML documents are then rendered into document images, so that the final benchmark simultaneously contains document-native structural descriptions and visually rendered pages.
+
+This construction process provides two advantages for our study. First, it makes it possible to derive explicit structural input from the source document without relying on post hoc manual reconstruction of document hierarchy. Second, it preserves the visual complexity of document understanding by evaluating the framework on rendered pages rather than on source markup alone. As a result, the benchmark naturally supports the dual-stream setting studied in this paper, in which explicit structural information and multimodal page representations are jointly modeled.
+
+To improve the realism and diversity of the benchmark, the generation process introduces controlled variation in document content, formatting, and local noise patterns. Different template instances may vary in entity naming, value surface forms, layout details, and reference expressions. In addition, benchmark metadata records document-level factors such as layout profile, difficulty level, and noise level, which can later support fine-grained analysis of model behavior under different document conditions. Table~\ref{tab:dataset_stats} summarizes the scale of the benchmark after generation and split assignment. Since each synthetic sample is rendered as a single contract page, the number of pages is equal to the number of document instances in the current benchmark. Unlike existing task-specific document benchmarks such as FUNSD, CORD, and SROIE, our benchmark is designed around three coordinated KG-oriented stages under a unified document graph formulation~\cite{jaumeFUNSDDatasetForm2019,parkCORDConsolidatedReceipt,huangICDAR2019CompetitionScanned2019}. It is also complementary to document layout benchmarks such as DocBank, PubLayNet, and DocLayNet, which mainly emphasize region-level document structure rather than KG-oriented semantic graph construction~\cite{liDocBankBenchmarkDataset2020,zhongPubLayNetLargestDataset2019,pfitzmannDocLayNetLargeHumanannotated2022}.
+
+\subsection{Document Graph Annotation}
+
+The benchmark is annotated at the document graph level. Starting from each instantiated HTML document and its rendered page, we derive a typed graph whose nodes correspond to semantically meaningful document units. Specifically, block nodes correspond to contextual text carriers such as paragraphs, titles, and cell-like containers; mention nodes correspond to spans denoting entities; reference nodes correspond to textual expressions that point to structural objects; value nodes correspond to local attribute expressions such as dates, amounts, phone numbers, bank accounts, tax numbers, email addresses, and contract identifiers; and object nodes correspond to structurally identifiable document objects such as tables and figures.
+
+Because the source documents are HTML-native, node boundaries and structural attachment can be derived from aligned source markup rather than reconstructed solely from visual parsing. This design reduces annotation ambiguity and preserves hierarchical organization, object membership, and reference anchoring in a consistent graph form. Each node is associated with its textual content, page position, node type, and alignment information between the structural source and the rendered document page.
+
+Edges are annotated to reflect both document organization and task-relevant interactions. Structural edges encode document-native organization, including hierarchical attachment, containment, and object-related structural relations. Contextual edges connect locally related nodes to support neighborhood-level information propagation in the graph. Candidate edges are further constructed for downstream prediction, such as mention--mention pairs for entity consolidation and reference--object pairs for semantic linking. In this way, the benchmark does not only provide isolated labels for individual spans, but also preserves the relational structure required for graph-based semantic modeling.
+
+The benchmark further provides aligned supervision for the three task stages studied in this paper. For entity consolidation, mention nodes are linked to canonical entity identifiers, which makes it possible to derive mention-pair labels and entity-level groupings. For semantic linking, candidate node pairs are annotated with document-grounded relation labels. For attribute canonicalization, value nodes are annotated with normalization types and corresponding canonical values. As a result, the benchmark supports unified evaluation of node identity, structural relation prediction, and value normalization within the same document graph representation.
+\subsection{Task Definitions}
+
+Based on the unified document graph annotation, we define three benchmark tasks that correspond to three coordinated stages of downstream knowledge graph construction, namely entity consolidation, semantic linking, and attribute canonicalization.
+
+The first task, entity consolidation, aims to determine whether multiple mention nodes refer to the same underlying entity in the document. This task is derived from canonical entity identifiers assigned to mention nodes during benchmark construction. In evaluation, the task can be viewed at both the pair level and the entity grouping level. Pairwise prediction measures whether two mentions should be merged, while entity-level evaluation measures the quality of the induced mention clusters.
+
+The second task, semantic linking, aims to identify document-grounded relations between graph nodes. In the current benchmark, this mainly includes relations involving explicit references and structural objects, such as linking a textual reference expression to the document object it refers to. Compared with conventional relation extraction over plain text, this task is explicitly grounded in document structure and therefore depends on both structural organization and multimodal context.
+
+The third task, attribute canonicalization, aims to convert local value expressions into normalized semantic attributes. In the current benchmark, value nodes are annotated with normalization types such as datetime, money, phone number, bank account, tax number, email address, and contract identifier, together with their canonical target forms. This task evaluates whether the model can correctly identify the semantic type of a value expression and support its recovery into a consistent canonical representation.
+
+These three tasks are defined on the same document graph and are therefore not treated as isolated downstream predictions. Instead, they correspond to different stages in the transformation from raw document observations to graph-ready knowledge. Entity consolidation addresses node identity, semantic linking addresses graph-edge construction, and attribute canonicalization addresses graph-attribute normalization. This unified task design is one of the key characteristics of the proposed benchmark.
+
+\section{Experiments}
+
+This section evaluates the proposed framework on the synthetic contract benchmark. We first describe the experimental setup, including the data split, baselines, metrics, and implementation details. We then report the main results on the 10k benchmark and analyze the effects of structural input and task-adaptive reasoning. Finally, we discuss what these results imply for structure-semantic fusion and graph-oriented semantic prediction in knowledge-oriented document understanding.
+
+\subsection{Experimental Setup}
+
+All experiments are conducted on the synthetic contract benchmark introduced in Section~4. Following the benchmark split, we use 9,000 samples for training and 1,000 samples for validation. Since the current benchmark is built from single-page rendered contract samples, each document instance corresponds to one rendered page.
+
+We compare the proposed framework with several representative settings under the same graph construction pipeline. The shared-graph setting uses the unified document graph without task-adaptive routing. The task-adaptive setting introduces task-conditioned graph reasoning on top of the same graph. We further consider a structure ablation by removing the HTML/DOM-derived structural branch, in order to evaluate the contribution of explicit structural input.
+
+For evaluation, entity consolidation is measured with pairwise F1, semantic linking is measured with F1, and attribute canonicalization is measured with exact match on canonical values. We also report a macro-level summary score over the benchmark stages when needed.
+
+The implementation is based on LayoutLMv3 for multimodal node encoding and graph neural message passing for document graph fusion. Unless otherwise stated, all models are trained for three epochs with the same optimizer, learning rate, and graph construction settings, so that performance differences mainly reflect the contribution of structural input and task-adaptive reasoning.
+\subsection{Main Results}
+
+Table~\ref{tab:main_results_10k} reports the main results on the synthetic contract benchmark. Three observations can be drawn from these results.
+
+First, explicit structural input is essential to the proposed framework. When the HTML/DOM branch is removed, performance drops substantially across all evaluation dimensions. In particular, entity consolidation decreases from 0.7879 to 0.6701, semantic linking decreases from 0.6342 to 0.3563, and the overall KG macro score decreases from 0.6781 to 0.4492. This result shows that multimodal page encoding alone is not sufficient for knowledge-oriented document understanding, and that explicit document structure plays a critical role in organizing graph-ready semantics.
+
+Second, under the same structure-aware document graph framework, task-adaptive reasoning further improves the shared setting on the main semantic prediction stages. Compared with the shared model, the task-adaptive variant improves entity consolidation from 0.7879 to 0.8115 and semantic linking from 0.6342 to 0.6727. Although the value exact match remains nearly unchanged (0.7029 vs. 0.7028), the overall KG macro score still increases from 0.6781 to 0.6862. This indicates that task-adaptive routing is particularly beneficial for stages that rely more heavily on task-sensitive interaction patterns among graph nodes.
+
+Third, the gains of the task-adaptive model are achieved on top of an already strong unified graph baseline. This suggests that the main effectiveness of the proposed framework comes from the combination of explicit structural input, multimodal node encoding, and unified document graph modeling, while task-adaptive reasoning provides an additional mechanism for improving stage-specific inference. Overall, the results support both major claims of this paper: the HTML/DOM branch is indispensable in the current framework, and task-adaptive graph reasoning further enhances graph-oriented semantic prediction.
+
+
+
+\begin{table}[!htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\caption{Main results on the synthetic contract benchmark under the 10k setting.}
+\label{tab:main_results_10k}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Method & Ent. F1 & Link F1 & Val. EM & KG Macro \\
+\midrule
+w/o DOM & 0.6701 & 0.3563 & 0.5289 & 0.4492 \\
+Shared & 0.7879 & 0.6342 & 0.7029 & 0.6781 \\
+Task-adapt. & 0.8115 & 0.6727 & 0.7028 & 0.6862 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Effect of Structural Input}
+
+The results in Table~\ref{tab:main_results_10k} clearly show the importance of explicit structural input in the proposed framework. When the HTML/DOM branch is removed, performance drops substantially across all evaluation dimensions. Entity consolidation decreases from 0.7879 to 0.6701, semantic linking decreases from 0.6342 to 0.3563, and the overall KG macro score decreases from 0.6781 to 0.4492. This degradation indicates that multimodal page encoding alone is insufficient for knowledge-oriented document understanding.
+
+A particularly notable drop is observed in semantic linking, where the score almost halves after removing the structural branch. This is consistent with the nature of the task, since document-grounded semantic linking depends strongly on hierarchy, object anchoring, and reference-related organization. Overall, the results confirm that explicit document structure is not merely auxiliary metadata, but an essential component of graph-oriented semantic modeling in the current framework.
+
+
+\subsection{Effect of Task-Adaptive Reasoning}
+
+Table~\ref{tab:main_results_10k} further shows that task-adaptive reasoning improves the shared graph baseline under the same structure-aware document graph framework. Compared with the shared setting, the task-adaptive variant improves entity consolidation from 0.7879 to 0.8115 and semantic linking from 0.6342 to 0.6727. Although the value exact match remains nearly unchanged, the overall KG macro score still increases from 0.6781 to 0.6862.
+
+These results suggest that task-adaptive routing is especially beneficial for stages that rely more heavily on task-sensitive interaction patterns among graph nodes. Entity consolidation and semantic linking both require selective use of contextual evidence under different semantic objectives, whereas attribute canonicalization depends more on stable local semantic encoding. Therefore, the benefit of task adaptation is more visible on the former two stages than on the latter one.
+
+
+\subsection{Discussion}
+
+The main results lead to two observations. First, the unified document graph provides a strong basis for knowledge-oriented document understanding. By organizing explicit structural input and multimodal node representations in a shared graph space, the framework supports effective prediction across entity consolidation, semantic linking, and attribute canonicalization.
+
+Second, the updated 10k results show that task-adaptive routing is not merely a compatible extension, but a practically beneficial enhancement to the shared-graph framework. In particular, its gains are most visible on entity consolidation and semantic linking, which are the two stages that rely more heavily on task-sensitive interaction patterns among graph nodes. By contrast, attribute canonicalization remains largely stable across the two settings, suggesting that normalization depends more on robust local semantic encoding than on additional routing bias.
+
+Overall, these findings strengthen the main claim of this paper: knowledge-oriented document understanding benefits from a unified document graph that fuses explicit structure and multimodal semantics, and task-adaptive reasoning further improves the effectiveness of this framework for graph-oriented semantic prediction.
+
+
+
+\section{Conclusion}
+
+This paper presented a unified document graph framework for knowledge graph construction from complex documents. The proposed method models document understanding with two complementary input streams, namely explicit structural information derived from HTML/DOM and multimodal semantic representations encoded by LayoutLMv3, and fuses them within a typed document graph. On top of this shared graph, the framework supports three coordinated stages that are directly relevant to downstream knowledge graph construction: entity consolidation, semantic linking, and attribute canonicalization.
+
+To evaluate this formulation, we constructed a synthetic contract benchmark with aligned supervision for the three stages and conducted experiments under the 10k setting. The results showed that the unified document graph provides an effective basis for knowledge-oriented document understanding, while explicit structural input from the HTML/DOM branch plays an essential role in the overall pipeline. In particular, removing the structural branch causes clear performance degradation, confirming that explicit document structure is indispensable in the current framework. The results further showed that task-adaptive reasoning improves entity consolidation and semantic linking over the shared graph baseline while maintaining comparable value recovery performance.
+
+Overall, the study suggests that document understanding for knowledge graph construction should not be reduced to isolated extraction subtasks or page-level multimodal encoding alone. Instead, it benefits from an intermediate graph representation that jointly organizes explicit document structure and multimodal semantics. In future work, the framework can be extended toward more diverse document types, richer document-grounded relation categories, and more general canonical value generation beyond the current benchmark setting.
+
+
+%%=============================================%%
+%% For submissions to Nature Portfolio Journals %%
+%% please use the heading ``Extended Data''.   %%
+%%=============================================%%
+
+%%=============================================================%%
+%% Sample for another appendix section			       %%
+%%=============================================================%%
+
+%% \section{Example of another appendix section}\label{secA2}%
+%% Appendices may be used for helpful, supporting or essential material that would otherwise 
+%% clutter, break up or be distracting to the text. Appendices can consist of sections, figures, 
+%% tables and equations etc.
+
+%%===========================================================================================%%
+%% If you are submitting to one of the Nature Portfolio journals, using the eJP submission   %%
+%% system, please include the references within the manuscript file itself. You may do this  %%
+%% by copying the reference list from your .bbl file, paste it into the main manuscript .tex %%
+%% file, and delete the associated \verb+\bibliography+ commands.                            %%
+%%===========================================================================================%%
+
+\bibliography{sn-bibliography}% common bib file
+%% if required, the content of .bbl file can be included here once bbl is generated
+%%\input sn-article.bbl
+
+\end{document}

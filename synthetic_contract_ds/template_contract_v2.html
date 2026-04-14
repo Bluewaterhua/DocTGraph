@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <style>
+    body { margin: 0; font-family: "SimSun","Songti SC",serif; background: #fff; }
+
+/* 固定页尺寸 + 禁止溢出到下一页 */
+.page {
+  width: 794px;
+  height: 1123px;
+  box-sizing: border-box;
+  padding: 56px 64px 18px 64px;  /* 底部留给 footer */
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;              /* 关键：禁止跨页渲染 */
+}
+
+/* 内容区吃掉剩余高度，footer 永远在底部，不覆盖正文 */
+.page-content{
+  flex: 1 1 auto;
+  overflow: hidden;              /* 双保险：内容不把 footer 挤爆 */
+}
+
+.header { font-size: 12px; text-align: center; margin-bottom: 8px; }
+.title  { font-size: 24px; text-align: center; margin: 10px 0 16px; font-weight: 700; }
+.meta   { font-size: 14px; line-height: 1.8; }
+.section-title { font-size: 16px; font-weight: 700; margin-top: 10px; }
+.para { font-size: 14px; line-height: 1.9; margin: 6px 0; text-align: justify; }
+
+.table-wrap { margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+td, th { border: 1px solid #000; padding: 6px; vertical-align: top; word-break: break-word; }
+.caption { font-size: 13px; text-align: center; margin-top: 4px; }
+.fig-box { width: 100%; height: 180px; border: 1px solid #000; margin-top: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.appendix { border: 1px dashed #999; padding: 10px; margin-top: 10px; }
+
+/* footer 改为流式布局，不用 absolute 避免覆盖正文 */
+.footer{
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* 签署区给 stamp 预留空间：用相对容器承载 stamp，避免压住文字 */
+.sign-area{
+  position: relative;
+  min-height: 190px;             /* 预留 stamp 高度 */
+}
+
+.stamp {
+  width: 140px;
+  height: 140px;
+  border: 2px solid #999;
+  border-radius: 999px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  opacity: 0.35;
+}
+
+  </style>
+</head>
+
+<body>
+
+{% for pg in pages %}
+<div class="page" data-page="{{pg.page_idx}}">
+  <div class="page-content">
+  <div class="header" data-element-id="hdr_{{pg.page_idx}}">
+    技术服务合同（合成样例） 版本号：V{{version}}  文件编号：{{doc_no}}
+  </div>
+
+  {% if pg.page_type == "cover" %}
+    <div class="title" data-element-id="ttl_{{pg.page_idx}}">技术服务合同</div>
+
+    <div class="meta" data-element-id="meta_{{pg.page_idx}}">
+      合同编号：
+      <span data-value-id="v_contract_id" data-norm-type="contract_id" data-norm-value="{{contract_id_norm}}">
+        {{contract_id_raw}}
+      </span><br/>
+
+      项目名称：<span data-element-id="proj_{{pg.page_idx}}">{{project_name}}</span><br/>
+
+      甲方（委托方）：
+      <span data-mention-id="m_partyA_1" data-entity-id="{{entA_id}}">{{partyA_canonical}}</span><br/>
+
+      乙方（受托方）：
+      <span data-mention-id="m_partyB_1" data-entity-id="{{entB_id}}">{{partyB_canonical}}</span><br/>
+
+      签订日期：
+      <span data-value-id="v_sign_date" data-norm-type="datetime" data-norm-value="{{sign_date_norm}}">
+        {{sign_date_raw}}
+      </span>
+    </div>
+
+    <p class="para" data-element-id="p_cover_{{pg.page_idx}}_1">
+      经友好协商，
+      <span data-mention-id="m_partyA_2" data-entity-id="{{entA_id}}">{{partyA_alias_1}}</span>
+      （以下简称“甲方”）与
+      <span data-mention-id="m_partyB_2" data-entity-id="{{entB_id}}">{{partyB_alias_1}}</span>
+      （以下简称“乙方”）就本项目达成如下约定。
+      <span data-element-id="def_abbr_1" data-rel="defined_as" data-target-obj="{{entA_id}}"></span>
+    </p>
+  {% endif %}
+
+  {% for blk in pg.blocks %}
+    {% if blk.kind == "section" %}
+      <div class="section-title"
+           data-element-id="{{blk.element_id}}"
+           {% if blk.object_id %}data-object-id="{{blk.object_id}}"{% endif %}>
+        {{blk.text}}
+      </div>
+
+    {% elif blk.kind == "para" %}
+      <p class="para"
+         data-element-id="{{blk.element_id}}"
+         {% if blk.object_id %}data-object-id="{{blk.object_id}}"{% endif %}>
+        {{blk.html|safe}}
+      </p>
+
+    {% elif blk.kind == "table" %}
+      <div class="table-wrap" data-element-id="{{blk.wrap_id}}">
+        <table data-element-id="{{blk.element_id}}" data-object-id="{{blk.object_id}}">
+          <thead><tr>
+            {% for h in blk.headers %}<th>{{h}}</th>{% endfor %}
+          </tr></thead>
+          <tbody>
+            {{blk.rows_html|safe}}
+          </tbody>
+        </table>
+        <div class="caption" data-element-id="{{blk.caption_id}}" data-rel="caption_of" data-target-obj="{{blk.object_id}}">
+          {{blk.caption_text}}
+        </div>
+      </div>
+
+    {% elif blk.kind == "figure" %}
+      <div class="table-wrap" data-element-id="{{blk.wrap_id}}">
+        <div class="fig-box" data-element-id="{{blk.element_id}}" data-object-id="{{blk.object_id}}">
+          {{blk.fig_text}}
+        </div>
+        <div class="caption" data-element-id="{{blk.caption_id}}" data-rel="caption_of" data-target-obj="{{blk.object_id}}">
+          {{blk.caption_text}}
+        </div>
+      </div>
+
+    {% elif blk.kind == "appendix" %}
+      <div class="appendix" data-element-id="{{blk.element_id}}" data-object-id="{{blk.object_id}}">
+        <div class="section-title" data-element-id="{{blk.title_id}}">{{blk.title}}</div>
+        {% for p in blk.paras %}
+          <p class="para" data-element-id="{{p.element_id}}">{{p.html|safe}}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% if pg.include_signature %}
+  <div class="section-title" data-element-id="sec_sign_{{pg.page_idx}}">签署</div>
+  <div class="sign-area" data-element-id="sign_area_{{pg.page_idx}}">
+    <p class="para" data-element-id="p_sign_{{pg.page_idx}}">
+      甲方（盖章）：<span data-mention-id="m_partyA_3" data-entity-id="{{entA_id}}">{{partyA_alias_2}}</span><br/>
+      乙方（盖章）：<span data-mention-id="m_partyB_3" data-entity-id="{{entB_id}}">{{partyB_alias_2}}</span>
+    </p>
+    <div class="stamp" data-element-id="stamp_{{pg.page_idx}}"></div>
+  </div>
+{% endif %}
+
+  </div>
+  <div class="footer" data-element-id="ftr_{{pg.page_idx}}">第 {{pg.page_idx}} 页 / 共 {{page_total}} 页</div>
+</div>
+{% endfor %}
+
+</body>
+</html>

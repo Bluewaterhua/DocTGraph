@@ -25,4 +25,11 @@ __pycache__/
 /doc2graph/
 /test/
 /tools/
+/layoutlmv3/hf_models/
+/layoutlmv3/outputs/
+/tmp/
 /synthetic_contract_ds/contract_synth_safe_v1_audit200/
+/synthetic_contract_ds/contract_synth_safe_v2_audit200/
+/synthetic_contract_ds/contract_synth_safe_v2_audit500/
+/synthetic_contract_ds/contract_synth_safe_v2_train10k/
+/synthetic_contract_ds/contract_synth_safe_v2_train20k/

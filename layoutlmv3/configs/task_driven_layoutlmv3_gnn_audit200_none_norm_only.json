@@ -1,0 +1,25 @@
+{
+  "dataset_root": "C:/Users/sar/PycharmProjects/DocTGraph/synthetic_contract_ds/contract_synth_safe_v2_audit200",
+  "model_name_or_path": "C:/Users/sar/PycharmProjects/DocTGraph/layoutlmv3/hf_models/layoutlmv3-base",
+  "output_dir": "C:/Users/sar/PycharmProjects/DocTGraph/layoutlmv3/outputs/audit200_none_norm_only",
+  "router_mode": "none",
+  "batch_size": 2,
+  "num_epochs": 3,
+  "val_ratio": 0.1,
+  "seed": 42,
+  "learning_rate": 3e-5,
+  "weight_decay": 0.01,
+  "max_length": 512,
+  "num_workers": 0,
+  "graph_knn_k": 4,
+  "use_parent_edges": true,
+  "use_same_parent_edges": true,
+  "use_ref_edges": true,
+  "gnn_layers": 2,
+  "dropout": 0.1,
+  "task_loss_weights": {
+    "entity_consolidation": 0.0,
+    "semantic_linking": 0.0,
+    "attribute_canonicalization": 1.0
+  }
+}
