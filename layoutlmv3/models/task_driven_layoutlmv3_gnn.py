@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from transformers import LayoutLMv3Model
 
 from layoutlmv3.data.graph_builder import EDGE_TYPE_TO_ID, NORM_TYPE_TO_ID, RELATION_TO_ID
+from layoutlmv3.models.gnn_layers import EdgeAwareGraphLayer, build_gnn_layer
 
 
 TASK_TO_ID = {
@@ -50,82 +51,6 @@ class TaskConditioner(nn.Module):
         if router_mode not in {"mask", "subgraph", "mask_subgraph"}:
             raise ValueError(f"Unsupported router_mode: {router_mode}")
         return node_embeddings
-
-
-class EdgeAwareGraphLayer(nn.Module):
-    def __init__(self, hidden_size: int, num_edge_types: int, dropout: float) -> None:
-        super().__init__()
-        self.edge_embedding = nn.Embedding(num_edge_types, hidden_size)
-        self.message_proj = nn.Linear(hidden_size, hidden_size)
-        self.edge_attention = nn.Sequential(
-            nn.Linear(hidden_size * 4, hidden_size),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_size, 1),
-        )
-        self.edge_scale = nn.Parameter(torch.tensor(0.5))
-        self.message_adapter = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size * 2),
-            nn.GELU(),
-            nn.Linear(hidden_size * 2, hidden_size * 2),
-        )
-        self.update_proj = nn.Sequential(
-            nn.Linear(hidden_size * 2, hidden_size),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_size, hidden_size),
-        )
-        self.update_adapter = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size * 2),
-            nn.GELU(),
-            nn.Linear(hidden_size * 2, hidden_size * 2),
-        )
-        self.norm = nn.LayerNorm(hidden_size)
-
-    def forward(
-        self,
-        node_embeddings: torch.Tensor,
-        edge_index: torch.Tensor,
-        edge_type: torch.Tensor,
-        task_embedding: torch.Tensor | None = None,
-    ) -> torch.Tensor:
-        if edge_index.numel() == 0:
-            return node_embeddings
-
-        src = edge_index[0]
-        dst = edge_index[1]
-        edge_repr = self.edge_embedding(edge_type)
-        messages = self.message_proj(node_embeddings[src] + edge_repr)
-        if task_embedding is None:
-            edge_weight = torch.ones(messages.size(0), 1, device=node_embeddings.device)
-        else:
-            task_repr = task_embedding.unsqueeze(0).expand(messages.size(0), -1)
-            attention_input = torch.cat(
-                [node_embeddings[src], node_embeddings[dst], edge_repr, task_repr],
-                dim=-1,
-            )
-            # Keep all edges visible and let the model learn task-specific emphasis.
-            edge_delta = torch.tanh(self.edge_attention(attention_input))
-            edge_weight = 1.0 + self.edge_scale * edge_delta
-            msg_gamma, msg_beta = self.message_adapter(task_embedding).chunk(2, dim=-1)
-            messages = messages * (1.0 + 0.5 * torch.tanh(msg_gamma)).unsqueeze(0)
-            messages = messages + msg_beta.unsqueeze(0)
-        messages = messages * edge_weight
-
-        aggregated = torch.zeros_like(node_embeddings)
-        aggregated.index_add_(0, dst, messages)
-
-        degree = torch.zeros(node_embeddings.size(0), device=node_embeddings.device)
-        degree.index_add_(0, dst, edge_weight.squeeze(-1))
-        aggregated = aggregated / degree.clamp_min(1.0).unsqueeze(-1)
-
-        if task_embedding is not None:
-            upd_gamma, upd_beta = self.update_adapter(task_embedding).chunk(2, dim=-1)
-            aggregated = aggregated * (1.0 + 0.5 * torch.tanh(upd_gamma)).unsqueeze(0)
-            aggregated = aggregated + upd_beta.unsqueeze(0)
-
-        updated = self.update_proj(torch.cat([node_embeddings, aggregated], dim=-1))
-        return self.norm(node_embeddings + updated)
 
 
 class EntityConsolidationHead(nn.Module):
@@ -229,11 +154,15 @@ class TaskDrivenLayoutLMv3GNN(nn.Module):
         dropout: float = 0.1,
         task_loss_weights: Dict[str, float] | None = None,
         router_mode: str = "mask",
+        gnn_type: str = "hgt",
+        gnn_num_heads: int = 4,
+        freeze_encoder: bool = False,
     ) -> None:
         super().__init__()
         self.encoder = LayoutLMv3Model.from_pretrained(model_name_or_path)
         hidden_size = self.encoder.config.hidden_size
         self.router_mode = router_mode
+        self.gnn_type = gnn_type
         self.task_loss_weights = task_loss_weights or {
             "entity_consolidation": 1.0,
             "semantic_linking": 1.0,
@@ -246,14 +175,19 @@ class TaskDrivenLayoutLMv3GNN(nn.Module):
         self.task_conditioner = TaskConditioner(hidden_size=hidden_size)
         self.gnn_layers = nn.ModuleList(
             [
-                EdgeAwareGraphLayer(
+                build_gnn_layer(
+                    gnn_type=gnn_type,
                     hidden_size=hidden_size,
                     num_edge_types=len(EDGE_TYPE_TO_ID),
                     dropout=dropout,
+                    num_heads=gnn_num_heads,
                 )
                 for _ in range(gnn_layers)
             ]
         )
+        if freeze_encoder:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
         self.entity_consolidation_head = EntityConsolidationHead(hidden_size, dropout)
         self.semantic_linking_head = SemanticLinkingHead(hidden_size, dropout)
         self.attribute_canonicalization_head = AttributeCanonicalizationHead(hidden_size, dropout)
