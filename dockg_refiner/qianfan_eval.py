@@ -436,22 +436,39 @@ def _entity_level_pred_assignment(
 ) -> List[Optional[int]]:
     """For each gold mention pos, the pred cluster id implied by the alignment.
 
-    Algorithm: for each gold entity E, look at the pred entity-like
-    mentions that the aligner pointed to E. Their pred cluster ids
-    (from raw/refiner output) are votes; the majority wins as the
-    representative pred cluster of E. Every gold mention of E inherits
-    that cluster id. Gold mentions whose entity has zero pred votes
-    return None (= unaligned).
+    Codex 2026-05-09 finding: previous majority-vote algorithm collapsed
+    fragmented pred clusters — every gold mention of an entity inherited
+    the *single* most-voted pred cluster id, so K pred singletons all
+    aligned to one gold entity scored as one perfect cluster (fake B^3
+    F1 = 1.0). Replaced with **insertion-order 1-to-1 pairing**:
 
-    Why majority-vote rather than first-aligned: when Qianfan extracts
-    multiple mentions of the same entity (after the P1 prompt upgrade),
-    they may end up in different pred clusters due to refiner errors;
-    we want the cluster that *most* of E's pred mentions live in to be
-    treated as E's predicted partition, so refiner-induced over-merge
-    or fragmentation is reflected in the B^3 score for E's whole gold
-    cluster, not just one arbitrary mention.
+      * Build per-entity pred queue: pred mentions aligned to entity E,
+        in pred-mention insertion order, carrying their cluster ids.
+      * Walk gold mentions in gold-insertion order. For each gold mention
+        with entity E, pop the head of E's queue and inherit that cluster
+        id. Empty queue -> None (becomes a unique singleton in B^3).
+      * Pred mentions left over (more pred than gold for an entity) are
+        silently ignored — they're outside the gold universe so B^3 does
+        not see them directly; they only matter if they appear in some
+        OTHER entity's gold cluster, which they cannot if the aligner is
+        consistent.
+
+    Behavior on the 4 canonical scenarios:
+
+      * 5 gold + 5 pred all in cluster 0:    all 5 gold inherit cluster 0
+                                              -> B^3 = 1.0 (correct, perfect merge)
+      * 5 gold + 5 pred in 5 distinct clusters: 5 gold get 5 distinct
+                                              cluster ids -> B^3 punishes
+                                              fragmentation (correct)
+      * 5 gold + 1 pred in cluster 0:         1 gold gets cluster 0; 4
+                                              gold get None (singletons)
+                                              -> B^3 ~0.2 recall (correct)
+      * 1 gold + 5 pred in cluster 0:         1 gold gets cluster 0; 4
+                                              extra pred ignored
+                                              -> B^3 = 1.0 (correct)
     """
-    entity_to_cluster_votes: Dict[str, Dict[int, int]] = {}
+    # Per-entity FIFO of pred cluster ids in pred insertion order.
+    entity_to_pred_queue: Dict[str, List[int]] = {}
     for k, eid in enumerate(pred_to_gold_entity):
         if eid is None:
             continue
@@ -459,20 +476,24 @@ def _entity_level_pred_assignment(
         cluster_id = pred_cluster_id_by_parsed_pos.get(parsed_idx)
         if cluster_id is None:
             continue
-        votes = entity_to_cluster_votes.setdefault(eid, {})
-        votes[cluster_id] = votes.get(cluster_id, 0) + 1
-    entity_to_majority: Dict[str, int] = {}
-    for eid, votes in entity_to_cluster_votes.items():
-        # Tie-break: lower cluster id wins (deterministic).
-        entity_to_majority[eid] = sorted(
-            votes.items(), key=lambda kv: (-kv[1], kv[0])
-        )[0][0]
+        entity_to_pred_queue.setdefault(eid, []).append(cluster_id)
+
     out: List[Optional[int]] = []
+    head: Dict[str, int] = {}  # next index to pop per entity
     for eid in gold_mention_to_entity:
         if eid is None:
             out.append(None)
+            continue
+        queue = entity_to_pred_queue.get(eid)
+        if not queue:
+            out.append(None)
+            continue
+        i = head.get(eid, 0)
+        if i >= len(queue):
+            out.append(None)
         else:
-            out.append(entity_to_majority.get(eid))
+            out.append(queue[i])
+            head[eid] = i + 1
     return out
 
 
@@ -690,6 +711,7 @@ def _aggregate_partial(per_doc: List[Dict[str, Any]]) -> Dict[str, Any]:
     n_field_total = 0
     n_present_total = 0
     n_pred_nonempty = 0
+    n_docs_schema_scored = 0
 
     for d in per_doc:
         if d.get("_skip"):
@@ -712,7 +734,13 @@ def _aggregate_partial(per_doc: List[Dict[str, Any]]) -> Dict[str, Any]:
         n_pred_entity_like_total += align.get("n_pred_entity_like", 0)
         n_pred_aligned_total += align.get("n_pred_aligned", 0)
 
+        # Codex 2026-05-09 fix: per-doc schema records may carry
+        # _not_scored=True (gold_upper). Skip those from EM accumulation
+        # so summary doesn't dilute "0 matches over 0 fields" into "0%".
         s = d.get("schema") or {}
+        if s.get("_not_scored"):
+            continue
+        n_docs_schema_scored += 1
         s_strict = s.get("strict") or {}
         s_semantic = s.get("semantic") or {}
         n_match_strict += s_strict.get("n_exact_match", 0)
@@ -728,6 +756,40 @@ def _aggregate_partial(per_doc: List[Dict[str, Any]]) -> Dict[str, Any]:
     main_R = main_r / max(main_n, 1)
     aln_P = aln_p / max(aln_n, 1)
     aln_R = aln_r / max(aln_n, 1)
+
+    if n_docs_schema_scored == 0:
+        # Codex 2026-05-09 fix: gold_upper-only run -> no schema scored.
+        # Don't synthesize a 0% number; mark explicitly.
+        schema_summary: Dict[str, Any] = {
+            "_not_scored": True,
+            "reason": "no doc had schema scored (e.g. gold_upper_partial)",
+            "n_docs_schema_scored": 0,
+        }
+    else:
+        schema_summary = {
+            "n_docs_schema_scored": n_docs_schema_scored,
+            "strict": {
+                "em_rate": n_match_strict / max(n_field_total, 1),
+                "em_rate_present_only":
+                    n_match_strict / max(n_present_total, 1),
+                "n_fields_total": n_field_total,
+                "n_present_gold": n_present_total,
+                "n_pred_nonempty": n_pred_nonempty,
+                "n_exact_match": n_match_strict,
+            },
+            "semantic": {
+                "em_rate": n_match_semantic / max(n_field_total, 1),
+                "em_rate_present_only":
+                    n_match_semantic / max(n_present_total, 1),
+                "n_fields_total": n_field_total,
+                "n_present_gold": n_present_total,
+                "n_pred_nonempty": n_pred_nonempty,
+                "n_exact_match": n_match_semantic,
+                "_diagnostic_only":
+                    "looser equivalence (date/money tolerant); "
+                    "headline metric is strict",
+            },
+        }
 
     return {
         "n_docs": n_docs,
@@ -760,29 +822,7 @@ def _aggregate_partial(per_doc: List[Dict[str, Any]]) -> Dict[str, Any]:
                     if n_pred_entity_like_total else None,
             },
         },
-        "schema": {
-            "strict": {
-                "em_rate": n_match_strict / max(n_field_total, 1),
-                "em_rate_present_only":
-                    n_match_strict / max(n_present_total, 1),
-                "n_fields_total": n_field_total,
-                "n_present_gold": n_present_total,
-                "n_pred_nonempty": n_pred_nonempty,
-                "n_exact_match": n_match_strict,
-            },
-            "semantic": {
-                "em_rate": n_match_semantic / max(n_field_total, 1),
-                "em_rate_present_only":
-                    n_match_semantic / max(n_present_total, 1),
-                "n_fields_total": n_field_total,
-                "n_present_gold": n_present_total,
-                "n_pred_nonempty": n_pred_nonempty,
-                "n_exact_match": n_match_semantic,
-                "_diagnostic_only":
-                    "looser equivalence (date/money tolerant); "
-                    "headline metric is strict",
-            },
-        },
+        "schema": schema_summary,
     }
 
 
@@ -792,7 +832,9 @@ def run_partial(args: argparse.Namespace) -> int:
     if not dataset.exists():
         print(f"[partial] dataset not found: {dataset}", file=sys.stderr)
         return 2
-    if not cache_dir.exists():
+    # gold_upper does not consume VLM cache (codex 2026-05-09 fix); other
+    # modes still require it.
+    if args.mode != "gold_upper_partial" and not cache_dir.exists():
         print(f"[partial] cache_dir not found: {cache_dir}", file=sys.stderr)
         return 2
     docs = _list_doc_dirs(dataset, args.limit_docs)
@@ -838,12 +880,17 @@ def run_partial(args: argparse.Namespace) -> int:
             per_doc.append(record)
             continue
 
-        parsed = load_vlm_cache(cache_dir, d.name, args.backend_name)
-        if parsed is None or parsed.get("_error"):
-            record["_skip"] = True
-            record["_error"] = "vlm_cache_missing_or_error"
-            per_doc.append(record)
-            continue
+        # gold_upper does NOT consume VLM cache (codex 2026-05-09 fix);
+        # only raw_partial / refiner_partial need pred mentions from
+        # Qianfan output.
+        parsed: Optional[Dict[str, Any]] = None
+        if args.mode in ("raw_partial", "refiner_partial"):
+            parsed = load_vlm_cache(cache_dir, d.name, args.backend_name)
+            if parsed is None or parsed.get("_error"):
+                record["_skip"] = True
+                record["_error"] = "vlm_cache_missing_or_error"
+                per_doc.append(record)
+                continue
 
         if args.mode == "raw_partial":
             pred = raw_predictions(parsed)
@@ -904,8 +951,14 @@ def run_partial(args: argparse.Namespace) -> int:
                     "pred_alignment_rate": 1.0 if n_g else None,
                 },
             }
-            record["schema"] = _schema_em(gold_schema,
-                                          {f: None for f in SCHEMA_FIELDS})
+            # Codex 2026-05-09 fix: gold_upper does not score schema.
+            # Emitting a real EM=0 (with empty pred) was misleading;
+            # mark explicitly as not_scored so console / aggregator
+            # distinguish "0 of N" from "n/a".
+            record["schema"] = {
+                "_not_scored": True,
+                "reason": "gold_upper_partial does not score schema",
+            }
             per_doc.append(record)
             if (i + 1) % 10 == 0:
                 print(f"[gold_upper_partial] {i+1}/{len(docs)}", flush=True)
@@ -976,8 +1029,6 @@ def run_partial(args: argparse.Namespace) -> int:
     aln = b3["aligned_only"]
     align = b3["alignment"]
     sc = s["schema"]
-    sc_strict = sc["strict"]
-    sc_sem = sc["semantic"]
     print(f"  n_docs={s['n_docs']} skipped={s['n_skipped']}")
     print(f"  B^3 main:         F1={main['f1']:.4f}  "
           f"P={main['precision']:.3f} R={main['recall']:.3f}  "
@@ -989,12 +1040,20 @@ def run_partial(args: argparse.Namespace) -> int:
           f"({align['gold_alignment_rate']})  "
           f"pred entity-like {align['n_pred_aligned']}/{align['n_pred_entity_like']} "
           f"({align['pred_alignment_rate']})")
-    print(f"  Schema strict:    EM={sc_strict['em_rate']:.4f}  "
-          f"EM(present)={sc_strict['em_rate_present_only']:.4f}  "
-          f"({sc_strict['n_exact_match']}/{sc_strict['n_fields_total']})")
-    print(f"  Schema semantic:  EM={sc_sem['em_rate']:.4f}  "
-          f"EM(present)={sc_sem['em_rate_present_only']:.4f}  "
-          f"({sc_sem['n_exact_match']}/{sc_sem['n_fields_total']})  [diagnostic]")
+    if sc.get("_not_scored"):
+        # Codex 2026-05-09 fix: distinguish "not measured" from "0%".
+        print(f"  Schema: not_scored ({sc.get('reason', 'gold_upper mode')})")
+        sc_sem = None  # silence the second print
+    else:
+        sc_strict = sc["strict"]
+        sc_sem = sc["semantic"]
+        print(f"  Schema strict:    EM={sc_strict['em_rate']:.4f}  "
+              f"EM(present)={sc_strict['em_rate_present_only']:.4f}  "
+              f"({sc_strict['n_exact_match']}/{sc_strict['n_fields_total']})")
+    if sc_sem is not None:
+        print(f"  Schema semantic:  EM={sc_sem['em_rate']:.4f}  "
+              f"EM(present)={sc_sem['em_rate_present_only']:.4f}  "
+              f"({sc_sem['n_exact_match']}/{sc_sem['n_fields_total']})  [diagnostic]")
     print(f"\nFull report -> {args.out}")
     return 0
 
