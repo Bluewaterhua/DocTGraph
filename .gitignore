@@ -33,4 +33,8 @@ __pycache__/
 /synthetic_contract_ds/contract_synth_safe_v2_audit500/
 /synthetic_contract_ds/contract_synth_safe_v2_train10k/
 /synthetic_contract_ds/contract_synth_safe_v2_train20k/
+/layoutlmv3/configs/generated/
 synthetic_contract_ds/paper/
+/outputs_remote
+/layoutlmv3/outputs_from_server/
+/doc2graph

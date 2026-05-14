@@ -260,11 +260,14 @@ class HGTGraphLayer(nn.Module):
         self.edge_k_bias = nn.Embedding(num_edge_types, hidden_size)
         self.edge_v_bias = nn.Embedding(num_edge_types, hidden_size)
         self.edge_scalar_bias = nn.Embedding(num_edge_types, num_heads)
-        # Per-edge-type gating scalar (learnable, initialized to 1) - acts
-        # as a soft edge-type importance prior and is the reason the layer
-        # can down-weight unhelpful edge types at inference.
-        self.edge_gate = nn.Embedding(num_edge_types, num_heads)
-        nn.init.constant_(self.edge_gate.weight, 1.0)
+        # Per-edge-type log-space gate on attention logits. Parameterized
+        # directly in log-space (initialized to 0 => exp(0)=1 => "no gating"
+        # at init), rather than storing a positive gate and calling .log()
+        # on it. The original .log() path could produce -inf/NaN once SGD
+        # pushed the gate to <=0, poisoning all subsequent forward passes
+        # in an unrecoverable way (Codex 2026-04-22 audit).
+        self.edge_log_gate = nn.Embedding(num_edge_types, num_heads)
+        nn.init.zeros_(self.edge_log_gate.weight)
         nn.init.zeros_(self.edge_k_bias.weight)
         nn.init.zeros_(self.edge_v_bias.weight)
         nn.init.zeros_(self.edge_scalar_bias.weight)
@@ -308,11 +311,14 @@ class HGTGraphLayer(nn.Module):
         e_k = self.edge_k_bias(edge_type).view(-1, self.num_heads, self.head_dim)
         e_v = self.edge_v_bias(edge_type).view(-1, self.num_heads, self.head_dim)
         e_scalar = self.edge_scalar_bias(edge_type)          # [E, H]
-        e_gate = self.edge_gate(edge_type)                   # [E, H]
+        e_log_gate = self.edge_log_gate(edge_type)           # [E, H], log-space
 
         # [E, H]
         attn_logits = (q[dst] * (k[src] + e_k)).sum(dim=-1) * self.scale + e_scalar
-        attn_logits = attn_logits + e_gate.log().clamp(min=-10.0, max=10.0)
+        # edge-type log-gate already lives in log space; just clamp to keep
+        # softmax numerically sane (exp(±10) is safe in fp32 with the
+        # per-destination softmax's max-trick).
+        attn_logits = attn_logits + e_log_gate.clamp(min=-10.0, max=10.0)
         attn = _scatter_softmax(attn_logits, dst, num_nodes)
         attn = self.dropout(attn)
 
