@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from typing import Dict, List, Tuple
 
-
+# 输入节点的类型 模型对不同节点的编码
 NODE_KIND_TO_ID = {
     "block": 0,
     "mention": 1,
@@ -11,14 +11,14 @@ NODE_KIND_TO_ID = {
     "value": 3,
     "object": 4,
 }
-
+# 关系分类任务的输出目标 节点之前是什么关系 这里是模型结果对应的分类
 RELATION_TO_ID = {
     "no_relation": 0,
     "refer_to": 1,
     "caption_of": 2,
     "contains": 3,
 }
-
+# 属性归一化任务的预测类别，模型只负责分类，分类完之后走规则 然后和结果比对
 NORM_TYPE_TO_ID = {
     "contract_id": 0,
     "datetime": 1,
@@ -28,7 +28,7 @@ NORM_TYPE_TO_ID = {
     "bank_account": 5,
     "email": 6,
 }
-
+# dom边中的分类 是原生html的分类
 EDGE_TYPE_TO_ID = {
     "parent_to_child": 0,
     "child_to_parent": 1,
@@ -36,7 +36,7 @@ EDGE_TYPE_TO_ID = {
     "ref_to_object": 3,
     "same_parent": 4,
 }
-
+# 用来限制哪些节点可以建立空间临近边
 SPATIAL_ALLOWED_KIND_PAIRS = {
     ("block", "block"),
     ("block", "mention"),
@@ -52,6 +52,22 @@ SPATIAL_ALLOWED_KIND_PAIRS = {
     ("block", "object"),
     ("object", "block"),
 }
+'''
+这里是基于任务服务的
+相当于在建立边的时候的邻接机制，只有在规则中的边，才可以建立临近边
+全连接的噪声很大
+其结构服务于：
+这段逻辑就是：
+
+取每个节点的 bbox 中心点
+计算它和其他节点的空间距离
+只保留类型组合允许的候选
+按距离排序
+取最近的 k 个
+加入 spatial_knn 边
+
+但是这里有一个问题，该方法并未做消融实验，即使用这种临近边构建的图 是否 真的比全连接效果好
+'''
 
 RELATION_BLOCK_PREFIXES = ("p_", "cap_")
 
@@ -72,7 +88,8 @@ def _bbox_center(node: Dict) -> Tuple[float, float]:
     x0, y0, x1, y1 = node["bbox"]
     return (x0 + x1) / 2.0, (y0 + y1) / 2.0
 
-
+# 按照我们设定的文档理解假设，把一个文档样本组织成模型可计算的图
+# 从nodes.json 以及 labels.json中读的
 def build_graph(
     nodes: List[Dict],
     labels: Dict,
@@ -102,7 +119,7 @@ def build_graph(
                     if src_pos == dst_pos:
                         continue
                     edge_pairs.append((children[src_pos], children[dst_pos], EDGE_TYPE_TO_ID["same_parent"]))
-
+    # 这里是服务knn的逻辑
     centers = [_bbox_center(node) for node in nodes]
     for src_idx, src_center in enumerate(centers):
         src_kind = nodes[src_idx]["kind"]
